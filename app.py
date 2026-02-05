@@ -7,6 +7,7 @@ app = FastAPI()
 
 API_KEY = "mysecurekey123"
 
+
 # ------------------------------
 # Request Model (tester-safe)
 # ------------------------------
@@ -22,6 +23,7 @@ class MessageRequest(BaseModel):
 @app.get("/")
 def root():
     return {"status": "API live"}
+
 
 @app.get("/health")
 def health():
@@ -77,27 +79,21 @@ def agent_reply():
 # Honeypot Endpoint
 # ------------------------------
 @app.post("/honeypot")
-def honeypot(request: MessageRequest, api_key: str = Header(None)):
+def honeypot(request: MessageRequest, api_key: str = Header(None, alias="x-api-key")):
 
     if api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
-    try:
-        scam_detected, risk_score = detect_scam(request.message)
-        intelligence = extract_intelligence(request.message)
-        confidence = min(100, risk_score * 25)
+    scam_detected, risk_score = detect_scam(request.message)
+    intelligence = extract_intelligence(request.message)
+    confidence = min(100, risk_score * 25)
 
-        response = {
-            "sessionId": request.sessionId,
-            "scamDetected": scam_detected,
-            "riskScore": risk_score,
-            "confidenceScore": confidence,
-            "conversationTurns": len(request.history) + 1,
-            "extractedIntelligence": intelligence,
-            "agentResponse": agent_reply()
-        }
-
-        return response
-
-    except Exception:
-        raise HTTPException(status_code=500, detail="Processing error")
+    return {
+        "sessionId": request.sessionId,
+        "scamDetected": scam_detected,
+        "riskScore": risk_score,
+        "confidenceScore": confidence,
+        "conversationTurns": len(request.history) + 1,
+        "extractedIntelligence": intelligence,
+        "agentResponse": agent_reply()
+    }
