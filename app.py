@@ -8,16 +8,16 @@ app = FastAPI()
 API_KEY = "mysecurekey123"
 
 # ------------------------------
-# Request Model
+# Request Model (tester-safe)
 # ------------------------------
 class MessageRequest(BaseModel):
-    sessionId: str
-    message: str
+    sessionId: str = "auto"
+    message: str = "test"
     history: list[str] = []
 
 
 # ------------------------------
-# Health Check Endpoint
+# Health Endpoints
 # ------------------------------
 @app.get("/")
 def root():
